@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="うさぎジャンプ">
+<meta name="theme-color" content="#0d1330">
 <title>うさぎジャンプ climber</title>
 <style>
   :root{
@@ -21,7 +28,7 @@
   }
   body{overscroll-behavior:none;}
   #wrap{display:flex;flex-direction:column;align-items:center;}
-  #stage{position:fixed;top:50%;left:50%;width:340px;height:480px;transform-origin:center center;}
+  #stage{position:fixed;top:50%;left:50%;width:340px;height:720px;transform-origin:center center;}
   canvas{border-radius:18px;touch-action:none;display:block;box-shadow:0 12px 40px rgba(0,0,0,0.55),0 0 0 4px rgba(255,255,255,0.06);}
 
   .score-big{
@@ -149,7 +156,7 @@
 <body>
 <div id="wrap">
   <div id="stage">
-    <canvas id="game" width="340" height="480"></canvas>
+    <canvas id="game" width="340" height="720"></canvas>
     <div id="liveRank" class="score-big">-</div>
     <div id="liveHighScore" class="score-crown">⏱ 0.0s</div>
     <div id="liveHeight" class="score-height">高さ 0</div>
@@ -505,28 +512,19 @@ function renderCheckpointLog(){
 }
 
 function renderFinalBoard(playerTime){
-  const player={name:'自分',isPlayer:true,time:playerTime,h:playerTime!==null?currentGoal:maxHeight,retired:playerTime===null};
-  const rivals=npcs.map(n=>({name:n.name,isPlayer:false,time:n.finishTime,h:n.height,retired:!!n.retired}));
-  const all=[player].concat(rivals);
-
-  const ranked=all.filter(e=>!e.retired);
-  const retiredList=all.filter(e=>e.retired);
-  ranked.sort((a,b)=>{
-    if(a.time!==null&&b.time!==null)return a.time-b.time;
-    if(a.time!==null)return -1;
-    if(b.time!==null)return 1;
-    return b.h-a.h;
-  });
-
-  function row(e,label){
-    return '<div class="stat" style="padding:6px 12px;font-size:12px;'+(e.isPlayer?'background:rgba(255,225,120,0.18);':'')+'">'+
-      '<span class="k" style="'+(e.isPlayer?'color:#ffe178;font-weight:900;':'')+'">'+label+' '+e.name+'</span>'+
-      '<span class="v" style="font-size:13px;">'+(e.time!==null?formatTime(e.time):'--')+'</span>'+
-      '</div>';
+  function estTime(h){
+    const hh=Math.max(h,1);
+    return raceTime*(currentGoal/hh);
   }
-  let html=ranked.map((e,i)=>row(e,(i+1)+'位')).join('');
-  html+=retiredList.map(e=>row(e,'リタイア')).join('');
-  finalBoardBlockEl.innerHTML=html;
+  const board=[{name:'自分',isPlayer:true,time:playerTime!==null?playerTime:estTime(maxHeight)}]
+    .concat(npcs.map(n=>({name:n.name,isPlayer:false,time:n.finishTime!==null?n.finishTime:estTime(n.height)})));
+  board.sort((a,b)=>a.time-b.time);
+  finalBoardBlockEl.innerHTML=board.map((e,i)=>
+    '<div class="stat" style="padding:6px 12px;font-size:12px;'+(e.isPlayer?'background:rgba(255,225,120,0.18);':'')+'">'+
+    '<span class="k" style="'+(e.isPlayer?'color:#ffe178;font-weight:900;':'')+'">'+(i+1)+'位 '+e.name+'</span>'+
+    '<span class="v" style="font-size:13px;">'+formatTime(e.time)+'</span>'+
+    '</div>'
+  ).join('');
 }
 
 const HS_KEY='rabbit_hop_climber_highscore';
@@ -646,9 +644,9 @@ const COSTUMES=[
   {id:'rabbit',name:'うさぎ',price:0,color:'#ffffff',accent:'#ffb3c6',emoji:'🐰'},
   {id:'turtle',name:'亀',price:1500,color:'#8bc34a',accent:'#4e7a2c',emoji:'🐢'},
   {id:'dog',name:'犬',price:2000,color:'#d9b98a',accent:'#8a6a45',emoji:'🐶'},
-  {id:'cat',name:'猫',price:2000,color:'#e8974a',accent:'#7a4a1a',emoji:'🐱'},
+  {id:'cat',name:'猫',price:2000,color:'#e8974a',accent:'#f5c9a8',emoji:'🐱'},
   {id:'bear',name:'熊',price:3000,color:'#8a5a35',accent:'#5c3a1e',emoji:'🐻'},
-  {id:'elephant',name:'象',price:2500,color:'#b0b0c0',accent:'#8a8a9a',emoji:'🐘'},
+  {id:'elephant',name:'象',price:2500,color:'#b0b0c0',accent:'#e9b8c4',emoji:'🐘'},
   {id:'tiger',name:'虎',price:4000,color:'#f5a03c',accent:'#3a2a1a',emoji:'🐯'},
   {id:'penguin',name:'ペンギン',price:3500,color:'#2a2a3a',accent:'#ffffff',emoji:'🐧'}
 ];
@@ -2870,7 +2868,7 @@ draw();
 
 const stageEl=document.getElementById('stage');
 function fitStage(){
-  const scale=Math.min(window.innerWidth/340,window.innerHeight/480);
+  const scale=Math.min(window.innerWidth/340,window.innerHeight/720);
   stageEl.style.transform='translate(-50%,-50%) scale('+scale+')';
 }
 window.addEventListener('resize',fitStage);

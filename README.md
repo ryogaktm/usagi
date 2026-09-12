@@ -3,10 +3,10 @@
 うさぎを操作して足場を渡りながら月を目指すレースゲームです。
 
 ## デプロイ方法(Vercel)
+1. このリポジトリをGitHubにpush
+2. https://vercel.com で「Add New Project」からインポート
+3. Framework Preset は "Other" のままでOK。設定不要でそのまま Deploy
 
-1. このリポジトリをGitHubに作成・push
-2. https://vercel.com にログインし「Add New Project」からこのリポジトリをインポート
-3. Framework Preset は "Other"(静的HTML)のままでOK。Build CommandやOutput Directoryの設定は不要です
-4. Deployを押すだけで公開されます
-
-`index.html` 1ファイルで完結しているため、追加の設定は不要です。
+## ファイル構成
+- index.html … ゲーム本体(単一ファイル)
+- manifest.json / icon-512.png / icon-180.png … ホーム画面に追加した時のアプリアイコン用
