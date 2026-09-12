@@ -29,10 +29,10 @@
   body{overscroll-behavior:none;}
   #wrap{display:flex;flex-direction:column;align-items:center;}
   #stage{position:fixed;top:50%;left:50%;width:340px;height:720px;transform-origin:center center;}
-  canvas{border-radius:18px;touch-action:none;display:block;box-shadow:0 12px 40px rgba(0,0,0,0.55),0 0 0 4px rgba(255,255,255,0.06);}
+  canvas{border-radius:0;touch-action:none;display:block;}
 
   .score-big{
-    position:absolute;left:14px;top:2px;
+    position:absolute;left:24px;top:64px;
     font-size:84px;line-height:1;font-weight:900;color:#fff;
     -webkit-text-stroke:1.5px rgba(28,38,80,0.4);
     text-shadow:0 2px 0 rgba(28,38,80,0.25),0 4px 6px rgba(0,0,0,0.12);
@@ -41,14 +41,14 @@
   }
   .score-big.pop{transform:scale(1.12);}
   .score-crown{
-    position:absolute;left:16px;top:88px;
+    position:absolute;left:26px;top:150px;
     font-size:26px;font-weight:900;color:#fff8dc;
     -webkit-text-stroke:1px rgba(28,38,80,0.5);
     text-shadow:0 2px 0 rgba(28,38,80,0.35),0 4px 8px rgba(0,0,0,0.15);
     pointer-events:none;
   }
   .score-height{
-    position:absolute;left:16px;top:120px;
+    position:absolute;left:26px;top:182px;
     font-size:18px;font-weight:900;color:#cfe8ff;
     -webkit-text-stroke:0.8px rgba(28,38,80,0.5);
     text-shadow:0 2px 0 rgba(28,38,80,0.3),0 3px 6px rgba(0,0,0,0.15);
@@ -56,7 +56,7 @@
   }
 
   .btn-submit{
-    position:absolute;right:10px;bottom:10px;padding:11px 20px;border-radius:30px;border:none;
+    position:absolute;right:24px;bottom:80px;padding:11px 20px;border-radius:30px;border:none;
     background:linear-gradient(#ff7a59,#e0432b);color:#fff;font-size:14px;font-weight:900;font-family:var(--font);
     box-shadow:0 4px 0 #8f2413,0 8px 18px rgba(0,0,0,0.4);display:none;letter-spacing:0.5px;
     overflow:hidden;
@@ -86,7 +86,7 @@
   .hold-overlay.alert .hold-center-text{color:#ffe14d;font-size:64px;}
   .hold-caption{margin-top:16px;font-size:16px;font-weight:900;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,0.5);letter-spacing:1px;}
   .btn-catapult{
-    position:absolute;right:10px;bottom:10px;border:none;
+    position:absolute;right:24px;bottom:80px;border:none;
     background:linear-gradient(#7cc7ff,#2f8fd8);color:#fff;font-size:30px;font-weight:900;font-family:var(--font);
     box-shadow:0 4px 0 #1c5c8c,0 8px 18px rgba(0,0,0,0.4);display:none;
     width:60px;height:60px;border-radius:50%;line-height:60px;text-align:center;padding:0;
@@ -96,14 +96,14 @@
   #overlay{
     position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
     background:radial-gradient(ellipse at 50% 30%,rgba(60,80,150,0.55),rgba(8,12,32,0.85));
-    border-radius:18px;color:#fff;text-align:center;
+    border-radius:0;color:#fff;text-align:center;
   }
   .card{
     width:280px;border-radius:22px;padding:22px 18px 20px;
     background:linear-gradient(180deg,#2a3a75 0%,#182450 100%);
     box-shadow:0 12px 34px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.15);
     border:2px solid rgba(255,255,255,0.12);
-    max-height:90vh;max-height:90dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    max-height:560px;overflow-y:auto;-webkit-overflow-scrolling:touch;
   }
   .card h1{font-size:22px;font-weight:900;margin:0;letter-spacing:1px;}
   .card .sub{font-size:13px;color:#c7d0f0;margin:8px 0 0;}
@@ -163,8 +163,8 @@
     <div id="countdownOverlay" style="position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:40;pointer-events:none;">
       <div id="countdownText" style="font-size:120px;font-weight:900;color:#fff;text-shadow:0 4px 0 rgba(28,38,80,0.5),0 8px 20px rgba(0,0,0,0.4);-webkit-text-stroke:3px rgba(28,38,80,0.5);">3</div>
     </div>
-    <div id="weatherInfo" style="position:absolute;right:14px;top:14px;font-size:26px;font-weight:700;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.35);pointer-events:none;">☀️</div>
-    <div id="liveLeaderboard" style="position:absolute;left:10px;bottom:10px;font-size:12px;font-weight:900;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.4);pointer-events:none;line-height:1.5;"></div>
+    <div id="weatherInfo" style="position:absolute;right:24px;top:70px;font-size:26px;font-weight:700;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.35);pointer-events:none;">☀️</div>
+    <div id="liveLeaderboard" style="position:absolute;left:24px;bottom:80px;font-size:12px;font-weight:900;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.4);pointer-events:none;line-height:1.5;"></div>
     <button id="catapultBtn" class="btn-catapult">🐇</button>
     <button id="giveUpBtn" class="btn-submit"><div id="giveUpFill" class="hold-fill"></div><span id="giveUpLabel" class="hold-label">🕯️最後の灯火</span></button>
 
@@ -2761,9 +2761,9 @@ function drawOffscreenHazardWarnings(){
     ctx.strokeStyle='rgba(0,0,0,0.35)';
     ctx.lineWidth=1;
     ctx.beginPath();
-    ctx.moveTo(sx,9);
-    ctx.lineTo(sx-7,21);
-    ctx.lineTo(sx+7,21);
+    ctx.moveTo(sx,70);
+    ctx.lineTo(sx-7,82);
+    ctx.lineTo(sx+7,82);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
@@ -2778,7 +2778,7 @@ function drawOffscreenHazardWarnings(){
 
 function drawRivalLadder(){
   if(!npcs||!npcs.length)return;
-  const trackX=W-16,topY=64,botY=H-100;
+  const trackX=W-26,topY=92,botY=H-110;
   ctx.save();
   ctx.strokeStyle='rgba(255,255,255,0.35)';
   ctx.lineWidth=2;
@@ -2840,7 +2840,7 @@ function drawRivalGhosts(){
       ctx.beginPath();ctx.arc(sx,sy,20,0,Math.PI*2);ctx.stroke();
       ctx.restore();
     }else{
-      const edgeY=sy<0?16:H-16;
+      const edgeY=sy<0?80:H-80;
       ctx.save();
       ctx.globalAlpha=0.9;
       ctx.fillStyle=n.color;
@@ -2868,7 +2868,7 @@ draw();
 
 const stageEl=document.getElementById('stage');
 function fitStage(){
-  const scale=Math.min(window.innerWidth/340,window.innerHeight/720);
+  const scale=Math.max(window.innerWidth/340,window.innerHeight/720);
   stageEl.style.transform='translate(-50%,-50%) scale('+scale+')';
 }
 window.addEventListener('resize',fitStage);
