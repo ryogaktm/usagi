@@ -10,6 +10,23 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="うさぎジャンプ">
 <meta name="theme-color" content="#0d1330">
+
+<!-- Google Analytics (測定IDは config.js で管理) -->
+<script src="config.js"></script>
+<script>
+  (function(){
+    var id=(window.SITE_CONFIG&&window.SITE_CONFIG.gaMeasurementId)||'';
+    if(!id)return;
+    var s=document.createElement('script');
+    s.async=true;
+    s.src='https://www.googletagmanager.com/gtag/js?id='+id;
+    document.head.appendChild(s);
+    window.dataLayer=window.dataLayer||[];
+    window.gtag=function(){dataLayer.push(arguments);};
+    gtag('js', new Date());
+    gtag('config', id);
+  })();
+</script>
 <title>うさぎジャンプ climber</title>
 <style>
   :root{
@@ -166,18 +183,6 @@
     <div id="weatherInfo" style="position:absolute;right:24px;top:70px;font-size:26px;font-weight:700;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.35);pointer-events:none;">☀️</div>
     <div id="liveLeaderboard" style="position:absolute;left:24px;bottom:80px;font-size:12px;font-weight:900;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.4);pointer-events:none;line-height:1.5;"></div>
     <button id="catapultBtn" class="btn-catapult">🐇</button>
-    <button id="giveUpBtn" class="btn-submit"><div id="giveUpFill" class="hold-fill"></div><span id="giveUpLabel" class="hold-label">🕯️最後の灯火</span></button>
-
-    <div id="holdOverlay" class="hold-overlay">
-      <div class="hold-ring-wrap">
-        <svg viewBox="0 0 120 120" width="170" height="170">
-          <circle cx="60" cy="60" r="52" stroke="rgba(255,255,255,0.25)" stroke-width="10" fill="none"/>
-          <circle id="holdRingProgress" cx="60" cy="60" r="52" stroke="#ffd54a" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7" transform="rotate(-90 60 60)"/>
-        </svg>
-        <div id="holdCenterText" class="hold-center-text">0%</div>
-      </div>
-      <div id="holdCaption" class="hold-caption">押すと発動</div>
-    </div>
 
     <div id="overlay">
       <div class="card">
@@ -369,14 +374,6 @@ const W=cv.width,H=cv.height;
 const scoreEl=document.getElementById('score');
 const overlay=document.getElementById('overlay');
 const startBtn=document.getElementById('startBtn');
-const giveUpBtn=document.getElementById('giveUpBtn');
-const giveUpFillEl=document.getElementById('giveUpFill');
-const giveUpLabelEl=document.getElementById('giveUpLabel');
-const holdOverlay=document.getElementById('holdOverlay');
-const holdRingProgress=document.getElementById('holdRingProgress');
-const holdCenterText=document.getElementById('holdCenterText');
-const holdCaption=document.getElementById('holdCaption');
-const HOLD_RING_CIRC=2*Math.PI*52;
 const catapultBtn=document.getElementById('catapultBtn');
 const liveHeightEl=document.getElementById('liveHeight');
 const liveRankEl=document.getElementById('liveRank');
@@ -516,15 +513,19 @@ function renderFinalBoard(playerTime){
     const hh=Math.max(h,1);
     return raceTime*(currentGoal/hh);
   }
-  const board=[{name:'自分',isPlayer:true,time:playerTime!==null?playerTime:estTime(maxHeight)}]
-    .concat(npcs.map(n=>({name:n.name,isPlayer:false,time:n.finishTime!==null?n.finishTime:estTime(n.height)})));
-  board.sort((a,b)=>a.time-b.time);
-  finalBoardBlockEl.innerHTML=board.map((e,i)=>
-    '<div class="stat" style="padding:6px 12px;font-size:12px;'+(e.isPlayer?'background:rgba(255,225,120,0.18);':'')+'">'+
-    '<span class="k" style="'+(e.isPlayer?'color:#ffe178;font-weight:900;':'')+'">'+(i+1)+'位 '+e.name+'</span>'+
-    '<span class="v" style="font-size:13px;">'+formatTime(e.time)+'</span>'+
-    '</div>'
-  ).join('');
+  const all=[{name:'自分',isPlayer:true,retired:playerTime===null,time:playerTime!==null?playerTime:null}]
+    .concat(npcs.map(n=>({name:n.name,isPlayer:false,retired:!!n.retired,time:n.finishTime!==null?n.finishTime:estTime(n.height)})));
+  const ranked=all.filter(e=>!e.retired).sort((a,b)=>a.time-b.time);
+  const retiredList=all.filter(e=>e.retired);
+  function row(e,label,timeText){
+    return '<div class="stat" style="padding:6px 12px;font-size:12px;'+(e.isPlayer?'background:rgba(255,225,120,0.18);':'')+'">'+
+      '<span class="k" style="'+(e.isPlayer?'color:#ffe178;font-weight:900;':'')+'">'+label+' '+e.name+'</span>'+
+      '<span class="v" style="font-size:13px;">'+timeText+'</span>'+
+      '</div>';
+  }
+  finalBoardBlockEl.innerHTML=
+    ranked.map((e,i)=>row(e,(i+1)+'位',formatTime(e.time))).join('')+
+    retiredList.map(e=>row(e,'リタイア','--')).join('');
 }
 
 const HS_KEY='rabbit_hop_climber_highscore';
@@ -879,19 +880,12 @@ window.addEventListener('keydown',e=>{
 function updateActionButtons(){
   if(!playing){
     catapultBtn.style.display='none';
-    giveUpBtn.style.display='none';
-    resetHold();
     return;
   }
-  if(rabbit.followers>=1){
-    catapultBtn.style.display='block';
-    giveUpBtn.style.display='none';
-    resetHold();
-  }else{
-    catapultBtn.style.display='none';
-    giveUpBtn.style.display='block';
-    giveUpLabelEl.textContent='🕯️最後の灯火';
-  }
+  catapultBtn.style.display=rabbit.followers>=1?'block':'none';
+}
+function gaEvent(name,params){
+  if(typeof gtag==='function')gtag('event',name,params||{});
 }
 function startLoop(){
   initGame();
@@ -900,6 +894,7 @@ function startLoop(){
   playing=false;
   draw();
   runCountdown();
+  gaEvent('race_start',{race_index:selectedRace,race_goal:currentGoal});
 }
 function runCountdown(){
   const steps=['3','2','1','GO!'];
@@ -1093,7 +1088,7 @@ function spawnExplosion(x,y,scale){
 function endGame(){
   playing=false;
   catapultBtn.style.display='none';
-  giveUpBtn.style.display='none';
+  gaEvent('race_retire',{race_index:selectedRace,height:maxHeight,time:raceTime});
   const earnedCoins=maxHeight;
   totalCoins+=earnedCoins;
   setCoins(totalCoins);
@@ -1125,7 +1120,6 @@ function endGame(){
 function triggerWin(){
   playing=false;
   catapultBtn.style.display='none';
-  giveUpBtn.style.display='none';
   const finalT=raceTime;
   const isNewBest=bestTime===null||finalT<bestTime;
   if(isNewBest){bestTime=finalT;setBestTime(selectedRace,bestTime);}
@@ -1136,6 +1130,7 @@ function triggerWin(){
   finalHeightEl.textContent=maxHeight;
   const goalAhead=npcs.filter(n=>n.height>=currentGoal).length;
   const finalRank=goalAhead+1;
+  gaEvent('race_finish',{race_index:selectedRace,rank:finalRank,time:finalT});
   finalRankEl.style.fontSize='76px';
   finalRankEl.textContent=finalRank+'位'+(finalRank===1?' 🥇':'');
   finalRankUnitEl.textContent='5人中の順位';
@@ -1186,76 +1181,6 @@ startBtn.addEventListener('click',()=>{
   }else{
     showRaceSelectScreen();
   }
-});
-
-function triggerLastLight(){
-  if(!playing)return;
-  if(rabbit.followers!==0)return;
-  if(rabbit.state!=='air'&&rabbit.state!=='charging')return;
-  giveUpBtn.style.display='none';
-  rabbit.diveType='submit';
-  rabbit.state='launchUp';
-  rabbit.launchStartY=rabbit.y;
-  rabbit.launchTimer=0;
-  rabbit.launchDuration=32;
-  rabbit.launchDistance=maxHeight*CONFIG.SUBMIT_BONUS_RATE*10;
-}
-let holdCharge=null;
-const HOLD_ALERT_MS=1200;
-const HOLD_ALERT_STEPS=3;
-function resetHold(){
-  holdCharge=null;
-  cancelGiveUpPress();
-  giveUpFillEl.style.width='0%';
-  giveUpBtn.classList.remove('alerting');
-  giveUpLabelEl.textContent='🕯️最後の灯火';
-  holdOverlay.style.display='none';
-  holdOverlay.classList.remove('alert');
-}
-function updateHoldCharge(){
-  if(!holdCharge)return;
-  const now=performance.now();
-  const elapsed=now-holdCharge.start;
-  holdOverlay.style.display='flex';
-  holdOverlay.classList.add('alert');
-  giveUpBtn.classList.add('alerting');
-  const remain=HOLD_ALERT_MS-elapsed;
-  if(remain<=0){
-    holdCharge=null;
-    resetHold();
-    triggerLastLight();
-    return;
-  }
-  const pct=Math.min(1,elapsed/HOLD_ALERT_MS);
-  giveUpFillEl.style.width=(pct*100)+'%';
-  holdRingProgress.style.strokeDashoffset=(HOLD_RING_CIRC*(1-pct))+'';
-  const step=Math.max(1,Math.ceil(remain/(HOLD_ALERT_MS/HOLD_ALERT_STEPS)));
-  holdCenterText.textContent=step;
-  holdCaption.textContent='もう一度押すと中止';
-  giveUpLabelEl.textContent='もう一度押すと中止';
-}
-let giveUpPressTimer=null;
-const GIVEUP_MIN_HOLD_MS=180; // これより短いタップでは発動しない(誤タップ防止)
-function cancelGiveUpPress(){
-  clearTimeout(giveUpPressTimer);
-  giveUpPressTimer=null;
-}
-giveUpBtn.addEventListener('pointerdown',()=>{
-  if(!playing||giveUpBtn.style.display!=='block')return;
-  if(holdCharge){
-    resetHold();
-    return;
-  }
-  clearTimeout(giveUpPressTimer);
-  giveUpPressTimer=setTimeout(()=>{
-    holdCharge={start:performance.now()};
-  },GIVEUP_MIN_HOLD_MS);
-});
-giveUpBtn.addEventListener('pointerup',cancelGiveUpPress);
-giveUpBtn.addEventListener('pointerleave',cancelGiveUpPress);
-giveUpBtn.addEventListener('pointercancel',cancelGiveUpPress);
-window.addEventListener('pointerdown',()=>{
-  if(holdCharge)resetHold();
 });
 
 catapultBtn.addEventListener('click',()=>{
@@ -1311,7 +1236,6 @@ function takeDamage(x,y){
     rabbit.launchDistance=penalty*10;
     rabbit.spinAngle=0;
     rabbit.spinSpeed=0.5;
-    giveUpBtn.style.display='none';
   }
 }
 
@@ -1401,7 +1325,6 @@ function update(){
   frame++;
   updateSlowMo();
   updateWeather();
-  updateHoldCharge();
   rabbit.x+=rabbit.vx*slowMo;
   if(rabbit.stunTimer>0){
     rabbit.stunTimer-=slowMo;
