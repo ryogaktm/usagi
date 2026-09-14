@@ -28,6 +28,16 @@
   })();
 </script>
 <title>うさぎジャンプ climber</title>
+<meta name="description" content="足場を渡って月を目指せ！ライバルと競うタイムアタックレースゲーム">
+<meta property="og:title" content="うさぎジャンプ climber">
+<meta property="og:description" content="足場を渡って月を目指せ！ライバルと競うタイムアタックレースゲーム">
+<meta property="og:image" content="https://usagi-eta.vercel.app/og-image.png">
+<meta property="og:url" content="https://usagi-eta.vercel.app/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="うさぎジャンプ climber">
+<meta name="twitter:description" content="足場を渡って月を目指せ！ライバルと競うタイムアタックレースゲーム">
+<meta name="twitter:image" content="https://usagi-eta.vercel.app/og-image.png">
 <style>
   :root{
     --gold:#ffd54a;
@@ -150,11 +160,16 @@
   }
   .result-unit{font-size:13px;color:#aab6e6;margin:0 0 12px;}
   .ribbon{
-    display:none;margin:0 auto 12px;padding:5px 14px;border-radius:20px;
-    background:linear-gradient(#ffe27a,#f2b21f);color:#4a3200;font-size:13px;font-weight:900;
-    box-shadow:0 3px 0 #a8770c;letter-spacing:1px;
+    display:none;margin:0 auto 12px;padding:2px 4px;
+    background:none;color:#ffe27a;font-size:13px;font-weight:900;
+    letter-spacing:1px;text-shadow:0 1px 3px rgba(0,0,0,0.4);
   }
   .stats{margin:0 auto;width:100%;display:flex;flex-direction:column;gap:7px;}
+  .result-tab{
+    padding:8px 4px;border-radius:10px;border:none;background:rgba(255,255,255,0.08);
+    color:#aab6e6;font-size:13px;font-weight:900;font-family:var(--font);
+  }
+  .result-tab.active{background:rgba(255,225,120,0.18);color:#ffe178;}
   .stat{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-radius:12px;background:rgba(0,0,0,0.25);font-size:14px;}
   .stat .k{color:#c7d0f0;display:flex;align-items:center;gap:6px;}
   .stat .v{font-weight:900;font-size:17px;color:#fff;}
@@ -177,6 +192,7 @@
     <div id="liveRank" class="score-big">-</div>
     <div id="liveHighScore" class="score-crown">⏱ 0.0s</div>
     <div id="liveHeight" class="score-height">高さ 0</div>
+    <div id="clearCondition" style="position:absolute;left:26px;top:206px;font-size:12px;font-weight:900;color:#ffe178;text-shadow:0 2px 4px rgba(0,0,0,0.4);pointer-events:none;">クリア: 1位</div>
     <div id="countdownOverlay" style="position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:40;pointer-events:none;">
       <div id="countdownText" style="font-size:120px;font-weight:900;color:#fff;text-shadow:0 4px 0 rgba(28,38,80,0.5),0 8px 20px rgba(0,0,0,0.4);-webkit-text-stroke:3px rgba(28,38,80,0.5);">3</div>
     </div>
@@ -209,19 +225,30 @@
           <p id="resultTitle" class="result-title">トゲにやられた…</p>
           <div id="finalRank" class="result-score">--</div>
           <p class="result-unit" id="finalRankUnit">順位</p>
-          <div id="finalBoardBlock" style="display:flex;flex-direction:column;gap:4px;margin:6px 0 10px;"></div>
           <div id="newRecord" class="ribbon">✨ NEW BEST TIME!</div>
-          <div class="stats">
-            <div class="stat"><span class="k">⏱ タイム</span><span id="finalTime" class="v gold">0.0s</span></div>
-            <div class="stat"><span class="k">📏 高さ</span><span id="finalHeight" class="v">0</span></div>
-            <div class="stat"><span class="k">🏆 ベストタイム</span><span id="finalBestTime" class="v gold">--</span></div>
-            <div class="stat"><span class="k">🪙 獲得コイン</span><span id="finalCoins" class="v gold">0</span></div>
-            <div class="stat"><span class="k">💰 コイン合計</span><span id="finalTotalCoins" class="v">0</span></div>
+          <div style="display:flex;gap:6px;margin:8px 0;">
+            <button id="tabRankBtn" type="button" class="result-tab active" style="flex:1;">順位表</button>
+            <button id="tabDetailBtn" type="button" class="result-tab" style="flex:1;">詳細記録</button>
           </div>
-          <div id="checkpointLogBlock" style="margin-top:10px;display:none;">
-            <p style="font-size:11px;color:#aab6e6;margin:0 0 6px;letter-spacing:1px;">通過記録</p>
-            <div id="checkpointLogList" style="display:flex;flex-direction:column;gap:4px;"></div>
+          <div id="resultTabContent" style="max-height:230px;overflow-y:auto;">
+            <div id="tabRankPane">
+              <div id="finalBoardBlock" style="display:flex;flex-direction:column;gap:4px;"></div>
+            </div>
+            <div id="tabDetailPane" style="display:none;">
+              <div class="stats">
+                <div class="stat"><span class="k">⏱ タイム</span><span id="finalTime" class="v gold">0.0s</span></div>
+                <div class="stat"><span class="k">📏 高さ</span><span id="finalHeight" class="v">0</span></div>
+                <div class="stat"><span class="k">🏆 ベストタイム</span><span id="finalBestTime" class="v gold">--</span></div>
+                <div class="stat"><span class="k">🪙 獲得コイン</span><span id="finalCoins" class="v gold">0</span></div>
+                <div class="stat"><span class="k">💰 コイン合計</span><span id="finalTotalCoins" class="v">0</span></div>
+              </div>
+              <div id="checkpointLogBlock" style="margin-top:10px;display:none;">
+                <p style="font-size:11px;color:#aab6e6;margin:0 0 6px;letter-spacing:1px;">通過記録</p>
+                <div id="checkpointLogList" style="display:flex;flex-direction:column;gap:4px;"></div>
+              </div>
+            </div>
           </div>
+          <button id="shareXBtn" type="button" class="race-chip" style="width:100%;margin-top:10px;flex-direction:row;gap:8px;background:#000;">𝕏 でシェア</button>
         </div>
         <button id="startBtn" class="btn-primary">レースを選ぶ</button>
         <button id="backToSelectBtn" class="btn-primary" style="display:none;margin-top:8px;background:linear-gradient(#6b7fa8,#3f4f70);box-shadow:0 4px 0 #1f2a40,0 8px 18px rgba(0,0,0,0.4);">レース選択画面へ戻る</button>
@@ -461,6 +488,7 @@ const overlay=document.getElementById('overlay');
 const startBtn=document.getElementById('startBtn');
 const catapultBtn=document.getElementById('catapultBtn');
 const liveHeightEl=document.getElementById('liveHeight');
+const clearConditionEl=document.getElementById('clearCondition');
 const liveRankEl=document.getElementById('liveRank');
 const liveLeaderboardEl=document.getElementById('liveLeaderboard');
 const introBlock=document.getElementById('introBlock');
@@ -473,6 +501,37 @@ let overlayStage='intro';
 let shopReturnStage='intro';
 let canAdvanceToNextRace=false;
 const backToSelectBtn=document.getElementById('backToSelectBtn');
+const shareXBtn=document.getElementById('shareXBtn');
+const tabRankBtn=document.getElementById('tabRankBtn');
+const tabDetailBtn=document.getElementById('tabDetailBtn');
+const tabRankPane=document.getElementById('tabRankPane');
+const tabDetailPane=document.getElementById('tabDetailPane');
+function showResultTab(which){
+  const isRank=which==='rank';
+  tabRankPane.style.display=isRank?'block':'none';
+  tabDetailPane.style.display=isRank?'none':'block';
+  tabRankBtn.classList.toggle('active',isRank);
+  tabDetailBtn.classList.toggle('active',!isRank);
+  document.getElementById('resultTabContent').scrollTop=0;
+}
+tabRankBtn.addEventListener('click',()=>{playSfx('button');showResultTab('rank');});
+tabDetailBtn.addEventListener('click',()=>{playSfx('button');showResultTab('detail');});
+let lastResultForShare=null;
+shareXBtn.addEventListener('click',()=>{
+  playSfx('button');
+  const r=lastResultForShare;
+  let text;
+  if(r&&r.finished){
+    text='うさぎジャンプ climberで'+RACES[r.race].label+'レースを'+r.rank+'位('+formatTime(r.time)+')でクリア！🐰🌕';
+  }else if(r){
+    text='うさぎジャンプ climberで高さ'+r.height+'まで挑戦中！🐰';
+  }else{
+    text='うさぎジャンプ climberで遊んでみた！🐰🌕';
+  }
+  const url=location.href.split('#')[0];
+  const shareUrl='https://twitter.com/intent/tweet?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(url);
+  window.open(shareUrl,'_blank');
+});
 backToSelectBtn.addEventListener('click',showRaceSelectScreen);
 
 function renderShop(){
@@ -608,9 +667,16 @@ function renderFinalBoard(playerTime){
       '<span class="v" style="font-size:13px;">'+timeText+'</span>'+
       '</div>';
   }
-  finalBoardBlockEl.innerHTML=
-    ranked.map((e,i)=>row(e,(i+1)+'位',formatTime(e.time))).join('')+
-    retiredList.map(e=>row(e,'リタイア','--')).join('');
+  const clearRank=getClearRank(selectedRace);
+  let html='';
+  ranked.forEach((e,i)=>{
+    if(i===clearRank){
+      html+='<div style="height:3px;background:#ff4444;margin:5px 4px;border-radius:2px;"></div>';
+    }
+    html+=row(e,(i+1)+'位',formatTime(e.time));
+  });
+  html+=retiredList.map(e=>row(e,'リタイア','--')).join('');
+  finalBoardBlockEl.innerHTML=html;
 }
 
 const HS_KEY='rabbit_hop_climber_highscore';
@@ -698,7 +764,7 @@ const NPC_ROSTER=[
 ];
 const GRADES=['F','E','D','C','B','A'];
 NPC_ROSTER.forEach((n,i)=>{n.grade=GRADES[i%6];});
-const GRADE_MULT={F:0.55,E:0.68,D:0.8,C:0.92,B:1.05,A:1.2};
+const GRADE_MULT={F:0.63,E:0.78,D:0.92,C:1.06,B:1.22,A:1.4};
 const RACE_GRADE_POOLS=[
   ['F','E'],
   ['E','D'],
@@ -707,16 +773,30 @@ const RACE_GRADE_POOLS=[
   ['B','A']
 ];
 function pickRaceNpcs(){
-  const allowed=RACE_GRADE_POOLS[selectedRace]||['A'];
-  let pool=NPC_ROSTER.filter(n=>allowed.includes(n.grade));
-  if(pool.length<4)pool=NPC_ROSTER.slice();
-  pool=pool.slice();
-  for(let i=pool.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    const tmp=pool[i];pool[i]=pool[j];pool[j]=tmp;
+  const rivalCount=getRivalCount(selectedRace);
+  let chosen=null;
+  if(selectedRace>0){
+    const survivors=getSurvivorsMap()[selectedRace];
+    if(survivors&&survivors.length>=rivalCount){
+      chosen=survivors.slice(0,rivalCount)
+        .map(nm=>NPC_ROSTER.find(p=>p.name===nm))
+        .filter(Boolean);
+      if(chosen.length<rivalCount)chosen=null;
+    }
   }
-  return pool.slice(0,4).map(p=>({
+  if(!chosen){
+    const pool=NPC_ROSTER.slice();
+    for(let i=pool.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      const tmp=pool[i];pool[i]=pool[j];pool[j]=tmp;
+    }
+    chosen=pool.slice(0,rivalCount);
+  }
+  const margin=30;
+  const laneStep=chosen.length>1?(WORLD_WIDTH-margin*2)/(chosen.length-1):0;
+  return chosen.map((p,i)=>({
     name:p.name,color:p.color,mode:p.type,grade:p.grade,height:0,
+    laneX:margin+i*laneStep,
     costume:COSTUMES[Math.floor(Math.random()*COSTUMES.length)],
     stallTimer:p.type==='burstStall'?(260+Math.random()*260):0,
     burstTimer:0,
@@ -765,6 +845,18 @@ const RACES=[
   {goal:1500, label:'月', icon:'🌕', biome:'seabed', biomeLabel:'海底',
     day:{top:'#1a5f8a',mid:'#2f8ab0',bot:'#6fc4d8'}, night:{top:'#0b1238',mid:'#2a3a7c',bot:'#6a5b9a'}, bodyColor:['#fefefb','#dcdce4','#b3b3c0']}
 ];
+const CLEAR_RANKS=[15,10,5,3,1];
+function getClearRank(raceIdx){return CLEAR_RANKS[raceIdx];}
+function getRivalCount(raceIdx){return raceIdx===0?20:CLEAR_RANKS[raceIdx-1]-1;}
+const SURVIVORS_KEY='rabbit_hop_climber_survivors';
+function getSurvivorsMap(){
+  try{return JSON.parse(localStorage.getItem(SURVIVORS_KEY)||'{}');}catch(e){return {};}
+}
+function setSurvivorsForRace(raceIdx,names){
+  const all=getSurvivorsMap();
+  all[raceIdx]=names;
+  localStorage.setItem(SURVIVORS_KEY,JSON.stringify(all));
+}
 const RACE_UNLOCK_KEY='rabbit_hop_climber_unlocked';
 function getUnlockedRace(){return parseInt(localStorage.getItem(RACE_UNLOCK_KEY)||'0',10);}
 function setUnlockedRace(v){localStorage.setItem(RACE_UNLOCK_KEY,String(v));}
@@ -896,6 +988,8 @@ function initSky(){
 function initGame(){
   currentGoal=RACES[selectedRace].goal;
   bestTime=getBestTime(selectedRace);
+  const clearRank=getClearRank(selectedRace);
+  clearConditionEl.textContent='上位'+clearRank+'位で通過';
   rabbit={x:W/2,y:GROUND_Y-24*SCALE/2,vy:0,vx:0,w:28*SCALE,h:24*SCALE,state:'charging',chargeTimer:CHARGE_FRAMES,pendingVY:HOP_VY,invincible:0,catapultTimer:0,giveUp:false,standingOn:null,followers:2,diveType:null,spinAngle:0,spinSpeed:0,stunTimer:0};
   camY=0;camX=0;maxHeight=0;slowMo=1;
   platforms=[];
@@ -982,12 +1076,16 @@ function startLoop(){
   gaEvent('race_start',{race_index:selectedRace,race_goal:currentGoal});
 }
 function runCountdown(){
-  const steps=['3','2','1','GO!'];
+  const clearText='上位'+getClearRank(selectedRace)+'位で通過';
+  const steps=['CLEAR_INFO','3','2','1','GO!'];
   let i=0;
   countdownOverlay.style.display='flex';
   function showNext(){
     if(i>=steps.length){
       countdownOverlay.style.display='none';
+      countdownTextEl.style.fontSize='120px';
+      countdownTextEl.style.webkitTextStroke='3px rgba(28,38,80,0.5)';
+      countdownTextEl.style.textShadow='0 4px 0 rgba(28,38,80,0.5),0 8px 20px rgba(0,0,0,0.4)';
       playing=true;
       raceState='racing';
       raceStartPerf=performance.now();
@@ -995,6 +1093,18 @@ function runCountdown(){
       rafId=requestAnimationFrame(loop);
       return;
     }
+    if(steps[i]==='CLEAR_INFO'){
+      countdownTextEl.style.fontSize='42px';
+      countdownTextEl.style.webkitTextStroke='1.2px rgba(28,38,80,0.55)';
+      countdownTextEl.style.textShadow='0 2px 0 rgba(28,38,80,0.4),0 3px 6px rgba(0,0,0,0.25)';
+      countdownTextEl.textContent=clearText;
+      i++;
+      setTimeout(showNext,1000);
+      return;
+    }
+    countdownTextEl.style.fontSize='120px';
+    countdownTextEl.style.webkitTextStroke='3px rgba(28,38,80,0.5)';
+    countdownTextEl.style.textShadow='0 4px 0 rgba(28,38,80,0.5),0 8px 20px rgba(0,0,0,0.4)';
     countdownTextEl.textContent=steps[i];
     playSfx(steps[i]==='GO!'?'go':'countdown');
     i++;
@@ -1176,6 +1286,7 @@ function endGame(){
   catapultBtn.style.display='none';
   playSfx('retire');
   gaEvent('race_retire',{race_index:selectedRace,height:maxHeight,time:raceTime});
+  lastResultForShare={finished:false,race:selectedRace,height:maxHeight};
   const earnedCoins=maxHeight;
   totalCoins+=earnedCoins;
   setCoins(totalCoins);
@@ -1201,6 +1312,7 @@ function endGame(){
   canAdvanceToNextRace=false;
   startBtn.textContent='もう一度';
   backToSelectBtn.style.display='block';
+  showResultTab('rank');
   overlay.style.display='flex';
 }
 
@@ -1219,9 +1331,10 @@ function triggerWin(){
   const goalAhead=npcs.filter(n=>n.height>=currentGoal).length;
   const finalRank=goalAhead+1;
   gaEvent('race_finish',{race_index:selectedRace,rank:finalRank,time:finalT});
+  lastResultForShare={finished:true,race:selectedRace,rank:finalRank,time:finalT};
   finalRankEl.style.fontSize='76px';
   finalRankEl.textContent=finalRank+'位'+(finalRank===1?' 🥇':'');
-  finalRankUnitEl.textContent='5人中の順位';
+  finalRankUnitEl.textContent=(npcs.length+1)+'人中の順位';
   finalTimeEl.textContent=formatTime(finalT);
   finalBestTimeEl.textContent=formatTime(bestTime);
   finalCoinsEl.textContent='+'+earnedCoins;
@@ -1232,8 +1345,21 @@ function triggerWin(){
   checkpointLog.push({checkpoint:currentGoal,time:finalT,rank:finalRank});
   renderFinalBoard(finalT);
   renderCheckpointLog();
+  const clearRank=getClearRank(selectedRace);
   let unlockedNew=false;
-  if(finalRank===1&&selectedRace===unlockedRace&&selectedRace<RACES.length-1){
+  if(finalRank<=clearRank&&selectedRace<RACES.length-1){
+    const standings=[{name:'__player__',isPlayer:true,time:finalT,h:currentGoal}]
+      .concat(npcs.map(n=>({name:n.name,isPlayer:false,time:n.finishTime,h:n.height})));
+    standings.sort((a,b)=>{
+      if(a.time!==null&&b.time!==null)return a.time-b.time;
+      if(a.time!==null)return -1;
+      if(b.time!==null)return 1;
+      return b.h-a.h;
+    });
+    const survivorNames=standings.slice(0,clearRank).filter(e=>!e.isPlayer).map(e=>e.name);
+    setSurvivorsForRace(selectedRace+1,survivorNames);
+  }
+  if(finalRank<=clearRank&&selectedRace===unlockedRace&&selectedRace<RACES.length-1){
     unlockedRace=selectedRace+1;
     setUnlockedRace(unlockedRace);
     unlockedNew=true;
@@ -1246,9 +1372,10 @@ function triggerWin(){
   introBlock.style.display='none';
   raceSelectBlock.style.display='none';
   gameOverBlock.style.display='block';
-  canAdvanceToNextRace=(finalRank===1&&selectedRace<RACES.length-1);
+  canAdvanceToNextRace=(finalRank<=clearRank&&selectedRace<RACES.length-1);
   startBtn.textContent=canAdvanceToNextRace?'次のレースへ':'もう一度';
   backToSelectBtn.style.display='block';
+  showResultTab('rank');
   overlay.style.display='flex';
 }
 function showRaceSelectScreen(){
@@ -1611,9 +1738,14 @@ if(rabbit.invincible<=0&&rabbit.catapultTimer<=0&&!rabbit.giveUp&&rabbit.state!=
     liveRankEl.textContent=liveRank+'位';
     const board=[{name:'自分',isPlayer:true,h:height}].concat(npcs.map(n=>({name:n.name,isPlayer:false,h:n.height})));
     board.sort((a,b)=>b.h-a.h);
-    liveLeaderboardEl.innerHTML=board.map((e,i)=>
+    const topBoard=board.slice(0,5);
+    let boardHtml=topBoard.map((e,i)=>
       '<div style="'+(e.isPlayer?'color:#ffe178;':'color:#fff;opacity:0.85;')+'">'+(i+1)+'位 '+e.name+'</div>'
     ).join('');
+    if(!topBoard.some(e=>e.isPlayer)){
+      boardHtml+='<div style="color:#ffe178;">'+liveRank+'位 自分</div>';
+    }
+    liveLeaderboardEl.innerHTML=boardHtml;
     for(let cp=CONFIG.CHECKPOINT_INTERVAL;cp<currentGoal;cp+=CONFIG.CHECKPOINT_INTERVAL){
       if(maxHeight>=cp&&!checkpointLog.some(c=>c.checkpoint===cp)){
         const ahead=npcs.filter(n=>n.height>maxHeight).length;
@@ -1978,13 +2110,17 @@ function drawBiomeCity(fade){
   ctx.fillRect(0,0,W,H);
   ctx.globalAlpha=fade;
 
+  function windowLit(wx,wy){
+    const h=Math.sin(wx*12.9898+wy*78.233)*43758.5453;
+    return (h-Math.floor(h))<0.6;
+  }
   function building(x,y,w,h,color){
     ctx.fillStyle=color;
     ctx.fillRect(x,y,w,h);
     ctx.fillStyle='rgba(255,240,180,0.7)';
     for(let wy=y+8;wy<y+h-8;wy+=16){
       for(let wx=x+6;wx<x+w-6;wx+=12){
-        if(Math.random()<0.6)ctx.fillRect(wx,wy,6,8);
+        if(windowLit(wx,wy))ctx.fillRect(wx,wy,6,8);
       }
     }
   }
@@ -2560,7 +2696,7 @@ function draw(){
       drawPlatformBody(px,py,p.w,p.h,c,p.type,p);
     }
     if(p.spiky){
-      drawPlatformSpike(px+p.w/2,py-p.h*0.5-1,p.w*0.82,7*SCALE);
+      drawPlatformSpike(px+p.w/2,py-3.5*SCALE+1,p.w*0.82,7*SCALE);
     }
     ctx.globalAlpha=1;
   }
@@ -2832,32 +2968,23 @@ function drawRivalLadder(){
 
 function drawRivalGhosts(){
   if(!npcs||!npcs.length)return;
-  const lineX=W/2;
-  ctx.save();
-  ctx.strokeStyle='rgba(255,255,255,0.22)';
-  ctx.lineWidth=1.5;
-  ctx.setLineDash([6,7]);
-  ctx.beginPath();ctx.moveTo(lineX,0);ctx.lineTo(lineX,H);ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.restore();
-
-  const offsets=[-46,-18,18,46];
-  npcs.forEach((n,i)=>{
+  npcs.forEach(n=>{
     const worldY=GROUND_Y-n.height*10;
     const sy=worldY-camY;
-    const sx=lineX+offsets[i];
+    const sx=n.laneX-camX;
+    if(sx<-40||sx>W+40)return;
     if(sy>=-40&&sy<=H+40){
       ctx.save();
-      ctx.globalAlpha=0.4;
+      ctx.globalAlpha=n.retired?0.2:0.4;
       drawRabbit(sx,sy,1,false,false,0,false,1,undefined,n.costume);
       ctx.restore();
       ctx.save();
-      ctx.globalAlpha=0.85;
+      ctx.globalAlpha=n.retired?0.35:0.85;
       ctx.strokeStyle=n.color;
       ctx.lineWidth=2;
       ctx.beginPath();ctx.arc(sx,sy,20,0,Math.PI*2);ctx.stroke();
       ctx.restore();
-    }else{
+    }else if(!n.retired){
       const edgeY=sy<0?80:H-80;
       ctx.save();
       ctx.globalAlpha=0.9;
