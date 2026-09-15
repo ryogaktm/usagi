@@ -154,6 +154,22 @@
   .chip i.round{width:10px;height:10px;border-radius:50%;}
 
   .result-title{font-size:15px;color:#c7d0f0;letter-spacing:2px;margin:0;}
+  #gameOverBlock.champion-glow{
+    border-radius:18px;
+    animation:championPulse 1.6s ease-in-out infinite;
+  }
+  #gameOverBlock.champion-glow #resultTitle{
+    color:#ffe178;font-size:18px;font-weight:900;
+    text-shadow:0 0 10px rgba(255,225,120,0.8);
+  }
+  #gameOverBlock.champion-glow #finalRank{
+    color:#ffe178;-webkit-text-stroke:1.5px rgba(120,90,10,0.6);
+    text-shadow:0 0 18px rgba(255,225,120,0.9),0 3px 0 rgba(16,24,56,0.4);
+  }
+  @keyframes championPulse{
+    0%,100%{box-shadow:0 0 16px 2px rgba(255,215,80,0.3);}
+    50%{box-shadow:0 0 30px 8px rgba(255,215,80,0.6);}
+  }
   .result-score{
     font-size:76px;line-height:1;font-weight:900;color:#fff;margin:6px 0 2px;
     -webkit-text-stroke:1.5px rgba(16,24,56,0.55);text-shadow:0 3px 0 rgba(16,24,56,0.4),0 6px 10px rgba(0,0,0,0.18);
@@ -500,6 +516,7 @@ const shopCoinsLabel2El=document.getElementById('shopCoinsLabel2');
 let overlayStage='intro';
 let shopReturnStage='intro';
 let canAdvanceToNextRace=false;
+let tournamentWonFlag=false;
 const backToSelectBtn=document.getElementById('backToSelectBtn');
 const shareXBtn=document.getElementById('shareXBtn');
 const tabRankBtn=document.getElementById('tabRankBtn');
@@ -607,7 +624,7 @@ function renderRaceSelect(){
     const bestLine=locked?'':(bt?formatTime(bt):'--');
     return '<button type="button" class="race-chip'+(sel?' selected':'')+(locked?' locked':'')+'" data-idx="'+i+'" '+(locked?'disabled':'')+'>'+
       '<span class="r-icon">'+(locked?'🔒':r.icon)+'</span>'+
-      '<span class="r-goal">'+r.goal+'</span>'+
+      '<span class="r-goal">'+(i===RACES.length-1?r.goal+getLapDistanceBonus():r.goal)+'</span>'+
       (locked?'':'<span class="r-biome">'+r.biomeLabel+'</span>')+
       (locked?'':'<span class="r-best">'+bestLine+'</span>')+
       '</button>';
@@ -849,6 +866,13 @@ const CLEAR_RANKS=[15,10,5,3,1];
 function getClearRank(raceIdx){return CLEAR_RANKS[raceIdx];}
 function getRivalCount(raceIdx){return raceIdx===0?20:CLEAR_RANKS[raceIdx-1]-1;}
 const SURVIVORS_KEY='rabbit_hop_climber_survivors';
+function clearSurvivors(){localStorage.setItem(SURVIVORS_KEY,'{}');}
+const LAP_KEY='rabbit_hop_climber_lap';
+function getLapCount(){return parseInt(localStorage.getItem(LAP_KEY)||'1',10);}
+function setLapCount(v){localStorage.setItem(LAP_KEY,String(v));}
+let lapCount=getLapCount();
+function getLapSpeedBonus(){return 1+(lapCount-1)*0.15;}
+function getLapDistanceBonus(){return (lapCount-1)*1000;}
 function getSurvivorsMap(){
   try{return JSON.parse(localStorage.getItem(SURVIVORS_KEY)||'{}');}catch(e){return {};}
 }
@@ -987,6 +1011,7 @@ function initSky(){
 
 function initGame(){
   currentGoal=RACES[selectedRace].goal;
+  if(selectedRace===RACES.length-1)currentGoal+=getLapDistanceBonus();
   bestTime=getBestTime(selectedRace);
   const clearRank=getClearRank(selectedRace);
   clearConditionEl.textContent='上位'+clearRank+'位で通過';
@@ -1284,6 +1309,8 @@ function spawnExplosion(x,y,scale){
 function endGame(){
   playing=false;
   catapultBtn.style.display='none';
+  tournamentWonFlag=false;
+  gameOverBlock.classList.remove('champion-glow');
   playSfx('retire');
   gaEvent('race_retire',{race_index:selectedRace,height:maxHeight,time:raceTime});
   lastResultForShare={finished:false,race:selectedRace,height:maxHeight};
@@ -1367,13 +1394,26 @@ function triggerWin(){
   if(unlockedNew){
     document.getElementById('resultTitle').textContent=RACES[selectedRace].icon+' ゴール! 次のレース解放!';
   }
+  const tournamentWon=(finalRank===1&&selectedRace===RACES.length-1);
+  tournamentWonFlag=tournamentWon;
+  if(tournamentWon){
+    document.getElementById('resultTitle').textContent='🏆 優勝!! 🏆';
+    finalRankEl.textContent='優勝!';
+    gameOverBlock.classList.add('champion-glow');
+  }else{
+    gameOverBlock.classList.remove('champion-glow');
+  }
   renderRaceSelect();
   overlayStage='gameOver';
   introBlock.style.display='none';
   raceSelectBlock.style.display='none';
   gameOverBlock.style.display='block';
   canAdvanceToNextRace=(finalRank<=clearRank&&selectedRace<RACES.length-1);
-  startBtn.textContent=canAdvanceToNextRace?'次のレースへ':'もう一度';
+  if(tournamentWon){
+    startBtn.textContent='🏆 '+(lapCount+1)+'周目へ';
+  }else{
+    startBtn.textContent=canAdvanceToNextRace?'次のレースへ':'もう一度';
+  }
   backToSelectBtn.style.display='block';
   showResultTab('rank');
   overlay.style.display='flex';
@@ -1392,8 +1432,20 @@ startBtn.addEventListener('click',()=>{
   if(overlayStage==='raceSelect'){
     startLoop();
   }else if(overlayStage==='gameOver'){
-    if(canAdvanceToNextRace)selectedRace++;
-    startLoop();
+    if(tournamentWonFlag){
+      lapCount++;
+      setLapCount(lapCount);
+      unlockedRace=0;
+      setUnlockedRace(0);
+      clearSurvivors();
+      selectedRace=0;
+      tournamentWonFlag=false;
+      gameOverBlock.classList.remove('champion-glow');
+      showRaceSelectScreen();
+    }else{
+      if(canAdvanceToNextRace)selectedRace++;
+      startLoop();
+    }
   }else{
     showRaceSelectScreen();
   }
@@ -1496,8 +1548,8 @@ function updateNpcs(){
         n.burstTimer=10+Math.floor(Math.random()*10);
       }
     }
-    const rawDelta=(n.height-heightBefore)*gradeMult;
-    n.height=heightBefore+Math.min(rawDelta,2.2);
+    const rawDelta=(n.height-heightBefore)*gradeMult*getLapSpeedBonus();
+    n.height=heightBefore+Math.min(rawDelta,2.2*getLapSpeedBonus());
     // ごく控えめに、カミナリに当たって少し後退することがある
     if(Math.random()<0.00035){
       n.height=Math.max(0,n.height-(6+Math.random()*10));
